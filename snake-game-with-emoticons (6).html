@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      border: 1px solid #333;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .score {
+      font-size: 24px;
+      margin-left: 20px;
+    }
+
+    .start-button {
+      margin-left: 20px;
+      font-size: 18px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="score">Score: <span id="scoreDisplay">0</span></div>
+    <button class="start-button" id="startButton">Start</button>
+  </div>
+
+  <script>
+    // Unicode emojis for snake and apple
+    const SNAKE_HEAD_EMOJI = '🐍';
+    const SNAKE_BODY_EMOJI = '🟢';
+    const APPLE_EMOJI = '🍎';
+    const FENCE_EMOJI = '🧱';
+
+    // Game variables
+    let snake = [[10, 10]];
+    let apple = [Math.floor(Math.random() * 18) + 1, Math.floor(Math.random() * 18) + 1];
+    let score = 0;
+    let direction = 'right';
+    let gameInterval;
+    let isGameStarted = false;
+
+    // Get canvas and drawing context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Draw function
+    function draw() {
+      // Clear the canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw the fence
+      for (let x = 0; x < 20; x++) {
+        ctx.fillText(FENCE_EMOJI, x * 20, 0);
+        ctx.fillText(FENCE_EMOJI, x * 20, 19 * 20);
+      }
+      for (let y = 1; y < 19; y++) {
+        ctx.fillText(FENCE_EMOJI, 0, y * 20);
+        ctx.fillText(FENCE_EMOJI, 19 * 20, y * 20);
+      }
+
+      // Draw the snake
+      ctx.fillText(SNAKE_HEAD_EMOJI, snake[0][0] * 20, snake[0][1] * 20);
+      for (let i = 1; i < snake.length; i++) {
+        ctx.fillText(SNAKE_BODY_EMOJI, snake[i][0] * 20, snake[i][1] * 20);
+      }
+
+      // Draw the apple
+      ctx.fillText(APPLE_EMOJI, apple[0] * 20, apple[1] * 20);
+
+      // Update the score display
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    // Game loop
+    function gameLoop() {
+      // Move the snake
+      let head = snake[0].slice();
+      switch (direction) {
+        case 'up':
+          head[1]--;
+          break;
+        case 'down':
+          head[1]++;
+          break;
+        case 'left':
+          head[0]--;
+          break;
+        case 'right':
+          head[0]++;
+          break;
+      }
+      snake.unshift(head);
+
+      // Check for collisions
+      if (
+        head[0] < 1 || head[0] >= 19 ||
+        head[1] < 1 || head[1] >= 19 ||
+        snake.slice(1).some(segment => segment[0] === head[0] && segment[1] === head[1])
+      ) {
+        clearInterval(gameInterval);
+        isGameStarted = false;
+        alert(`Game Over! Your score: ${score}`);
+        return;
+      }
+
+      // Check if the snake has eaten an apple
+      if (head[0] === apple[0] && head[1] === apple[1]) {
+        score++;
+        apple = [Math.floor(Math.random() * 18) + 1, Math.floor(Math.random() * 18) + 1];
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    // Start the game
+    document.getElementById('startButton').addEventListener('click', () => {
+      if (!isGameStarted) {
+        isGameStarted = true;
+        gameInterval = setInterval(gameLoop, 100);
+      }
+    });
+
+    // Handle user input
+    document.addEventListener('keydown', event => {
+      if (isGameStarted) {
+        switch (event.key) {
+          case 'ArrowUp':
+          case 'w':
+            if (direction !== 'down') direction = 'up';
+            break;
+          case 'ArrowDown':
+          case 's':
+            if (direction !== 'up') direction = 'down';
+            break;
+          case 'ArrowLeft':
+          case 'a':
+            if (direction !== 'right') direction = 'left';
+            break;
+          case 'ArrowRight':
+          case 'd':
+            if (direction !== 'left') direction = 'right';
+            break;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
